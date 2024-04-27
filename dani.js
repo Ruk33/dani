@@ -28,17 +28,6 @@ const parse_type_in = (instruction) => {
   };
 };
 
-const copy_content = async (text) => {
-  try {
-    await navigator.clipboard.writeText(text);
-    document.getElementById("success").textContent =
-      "Copied selector to clipboard.";
-  } catch (err) {
-    document.getElementById("error").textContent =
-      `Unable to copy "${text}" to clipboard.`;
-  }
-};
-
 const clear_cookies = () => {
   const now = new Date().toUTCString();
   document.cookie.split(";").forEach((c) => {
@@ -49,8 +38,8 @@ const clear_cookies = () => {
 };
 
 const is_element_hidden = (element) => {
-  if (!element) return true;
-
+  if (!element) 
+    return true;
   const styles = element.computedStyleMap();
   return (
     styles.get("display").value === "none" ||
@@ -103,24 +92,22 @@ const get_selector = (element) => {
 };
 
 const find_selector_for = (element) => {
-  const possibleSelector = get_selector(element);
-  if (possibleSelector.selector) {
+  const possible_selector = get_selector(element);
+  if (possible_selector.selector) {
     const elements = find_element(
-      possibleSelector.selector,
-      possibleSelector.with,
+      possible_selector.selector,
+      possible_selector.with,
       true,
     );
-    // check if [1...] are children of [0]
-    // console.log(possibleSelector, elements);
-    // if (elements.length === 1 && elements[0] === element) return possibleSelector;
-    let isValid = true;
+    let is_valid = true;
     for (let i = 1; i < elements.length; i++) {
       if (!elements[0].contains(elements[i])) {
-        isValid = false;
+        is_valid = false;
         break;
       }
     }
-    if (isValid) return possibleSelector;
+    if (is_valid)
+      return possible_selector;
   }
 
   let selector = "";
@@ -147,23 +134,20 @@ const find_element = (query, content, find_all) => {
     if (element) {
       if (content !== undefined) {
         let matches = false;
-        if (element.getAttribute("textContent") === content) matches = true;
+        if (element.getAttribute("textContent") === content) 
+          matches = true;
         if (element.textContent && element.textContent === content)
           matches = true;
-        if (element.value && element.value === content) matches = true;
+        if (element.value && element.value === content) 
+          matches = true;
         if (element.placeholder && element.placeholder === content)
           matches = true;
-        if (!matches) continue;
+        if (!matches) 
+          continue;
       }
       if (!find_all) {
         // scroll to node
         element.scrollIntoView(true);
-        // make it so the element appears in the center of view port.
-        const viewportH = Math.max(
-          document.documentElement.clientHeight,
-          window.innerHeight || 0,
-        );
-        window.scrollBy(0, -viewportH / 2);
         // red highlight
         const bg = element.style.background;
         element.style.background = "red";
@@ -172,67 +156,41 @@ const find_element = (query, content, find_all) => {
         }, 500);
       }
 
-      if (find_all) result.push(element);
-      else return element;
+      if (!find_all)
+        return element;
+
+      result.push(element);
     }
   }
-  if (find_all) return result;
+  if (find_all) 
+    return result;
 };
 
 const type_in = (input, what, tries) => {
-  const prevValue = input.value;
-  let nativeTextAreaValueSetter;
+  const prev_value = input.value;
   if (input.getAttribute("contentEditable") === "true") {
     input.textContent = what;
     complete_instruction();
-    setTimeout(() => {
-      handle_instruction(default_tries);
-    }, wait_before_each_action
-  );
+    setTimeout(() => handle_instruction(default_tries), wait_before_each_action);
     return;
-  } else {
-    nativeTextAreaValueSetter = Object.getOwnPropertyDescriptor(
-      input.__proto__,
-      "value",
-    ).set;
   }
-  nativeTextAreaValueSetter.call(input, what);
-  input.dispatchEvent(
-    new Event("input", {
-      bubbles: true,
-    }),
-  );
-  input.dispatchEvent(
-    new Event("change", {
-      bubbles: true,
-    }),
-  );
+  const set_value = Object.getOwnPropertyDescriptor(input.__proto__, "value").set;
+  set_value.call(input, what);
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  input.dispatchEvent(new Event("change", { bubbles: true }));
   // if the value wasn't successfully updated, go back
   // to the previous value. this can happen with select
   // inputs, if the option isn't valid, the select won't be
   // correctly updated.
   if (input.value !== what) {
-    nativeTextAreaValueSetter.call(input, prevValue);
-    input.dispatchEvent(
-      new Event("input", {
-        bubbles: true,
-      }),
-    );
-    input.dispatchEvent(
-      new Event("change", {
-        bubbles: true,
-      }),
-    );
-    setTimeout(() => {
-      handle_instruction(tries - 1);
-    }, 500);
+    set_value.call(input, prev_value);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    setTimeout(() => handle_instruction(tries - 1), 500);
     return;
   }
   complete_instruction();
-  setTimeout(() => {
-    handle_instruction(default_tries);
-  }, wait_before_each_action
-);
+  setTimeout(() => handle_instruction(default_tries), wait_before_each_action);
 };
 
 const update_logs = () => {
@@ -241,11 +199,11 @@ const update_logs = () => {
 
   const log = document.getElementById("instructions");
   log.value = "";
-  const resizeOperation = instructions.find((instruction) =>
+  const resize_operation = instructions.find((instruction) =>
     instruction.instruction.startsWith("resize "),
   );
   for (let i = 0; i < instructions.length; i++) {
-    if (!window.opener && resizeOperation)
+    if (!window.opener && resize_operation)
       log.value += `${instructions[i].instruction}\n`;
     else if (instructions[i] === next)
       log.value += `🛠️ ${instructions[i].instruction}\n`;
@@ -259,14 +217,11 @@ const update_logs = () => {
 
   if (!next) {
     document.getElementById("success").textContent = "All done!";
-    // setTimeout(() => {
     log.value = "";
     for (let i = 0; i < instructions.length; i++) {
       log.value += `${instructions[i].instruction}\n`;
     }
     localStorage.removeItem("instructions");
-    // }, 1000);
-
     return;
   }
 };
@@ -286,11 +241,8 @@ const complete_intervention = () => {
   document
     .getElementById("play")
     .removeEventListener("click", complete_intervention);
-  document.getElementById("play").addEventListener("click", handlePlay);
-  setTimeout(() => {
-    handle_instruction(default_tries);
-  }, wait_before_each_action
-);
+  document.getElementById("play").addEventListener("click", handle_play);
+  setTimeout(() => handle_instruction(default_tries), wait_before_each_action);
 };
 
 const testAll = async () => {
@@ -298,7 +250,7 @@ const testAll = async () => {
   const tests = await response.json();
   const instructions = tests.instructions;
   document.getElementById("instructions").value = instructions;
-  handlePlay();
+  handle_play();
 };
 
 const handle_instruction = (tries) => {
@@ -310,27 +262,25 @@ const handle_instruction = (tries) => {
   // running all the actions.
   if (!next) {
     document.getElementById("instructions").value =
-      localStorage.getItem("instructions_draft") + "\n";
+      localStorage.getItem("instructions_draft") || "" + "\n";
     return;
   }
 
   // Out of tries, report error.
   if (!tries) {
     let name = "";
-    const nextIndex = instructions.findIndex(
-      (instruction) => !instruction.done,
-    );
-    let nameIndex = 0;
-    for (let i = nextIndex; i >= 0; i--) {
-      if (!instructions[i].instruction.startsWith("name ")) continue;
-      nameIndex = i;
-      const fullName = instructions[i].instruction.split(" ")[1];
-      const line = nextIndex - nameIndex;
-      name = `Error in <a href="vscode://file/${fullName}:${line}">${fullName}</a> line ${line}`;
+    const next_index = instructions.findIndex((instruction) => !instruction.done);
+    let name_index = 0;
+    for (let i = next_index; i >= 0; i--) {
+      if (!instructions[i].instruction.startsWith("name "))
+        continue;
+      name_index = i;
+      const full_name = instructions[i].instruction.split(" ")[1];
+      const line = next_index - name_index;
+      name = `Error in <a href="vscode://file/${full_name}:${line}">${full_name}</a> line ${line}`;
       break;
     }
-    document.getElementById("error").innerHTML =
-      `Unable to complete: ${next.instruction}. ${name}`;
+    document.getElementById("error").innerHTML = `Unable to complete: ${next.instruction}. ${name}`;
     localStorage.removeItem("instructions");
     const log = document.getElementById("instructions");
     log.value = "";
@@ -433,10 +383,7 @@ const handle_instruction = (tries) => {
           return;
         }
         complete_instruction();
-        setTimeout(() => {
-          handle_instruction(default_tries);
-        }, wait_before_each_action
-      );
+        setTimeout(() => handle_instruction(default_tries), wait_before_each_action);
       }
       break;
     case "reload":
@@ -457,7 +404,7 @@ const handle_instruction = (tries) => {
           `User intervention requested: ${next.instruction.replace("intervention ", "")}. Once YOU finished the action, click ▶️ to continue.`;
         document
           .getElementById("play")
-          .removeEventListener("click", handlePlay);
+          .removeEventListener("click", handle_play);
         document
           .getElementById("play")
           .addEventListener("click", complete_intervention);
@@ -472,8 +419,7 @@ const handle_instruction = (tries) => {
               const instructions = JSON.parse(
                 localStorage.getItem("instructions") || "[]",
               );
-              const instructions_draft =
-                localStorage.getItem("instructions_draft");
+              const instructions_draft = localStorage.getItem("instructions_draft");
               sessionStorage.clear();
               localStorage.clear();
               localStorage.setItem(
@@ -495,8 +441,7 @@ const handle_instruction = (tries) => {
               const instructions = JSON.parse(
                 localStorage.getItem("instructions") || "[]",
               );
-              const instructions_draft =
-                localStorage.getItem("instructions_draft");
+              const instructions_draft = localStorage.getItem("instructions_draft");
               sessionStorage.clear();
               localStorage.clear();
               clear_cookies();
@@ -521,10 +466,7 @@ const handle_instruction = (tries) => {
         const height = params[2];
         resizeTo(Number(width), Number(height));
         complete_instruction();
-        setTimeout(() => {
-          handle_instruction(default_tries);
-        }, wait_before_each_action
-      );
+        setTimeout(() => handle_instruction(default_tries), wait_before_each_action);
       }
       break;
     default:
@@ -535,10 +477,10 @@ const handle_instruction = (tries) => {
   }
 };
 
-const handlePlay = () => {
-  const rawInstructions = document.getElementById("instructions").value;
+const handle_play = () => {
+  const raw_instructions = document.getElementById("instructions").value;
 
-  const instructions = rawInstructions
+  const instructions = raw_instructions
     .split("\n")
     .map((instruction) => instruction.trim())
     .filter((instruction) => instruction.length > 0)
@@ -552,10 +494,10 @@ const handlePlay = () => {
     }));
   localStorage.setItem("instructions", JSON.stringify(instructions));
 
-  const resizeOperation = instructions.find((instruction) =>
+  const resize_operation = instructions.find((instruction) =>
     instruction.instruction.startsWith("resize "),
   );
-  if (!window.opener && resizeOperation) {
+  if (!window.opener && resize_operation) {
     window.open("/", "", "left=0,top=0");
     return;
   }
@@ -564,7 +506,7 @@ const handlePlay = () => {
   handle_instruction(default_tries);
 };
 
-const handlePause = () => {
+const handle_pause = () => {
   const instructions = JSON.parse(
     localStorage.getItem("instructions") || "[]",
   ).map((instruction) => ({ ...instruction, done: true }));
@@ -587,57 +529,49 @@ const open_documentation = () => {
   document.getElementById("documentation-dialog").showModal();
 };
 
-const showNodeWithMouse = (e) => {
+const highlight_node_with_mouse = (e) => {
   if (
     !document.getElementById("dani").classList.contains("dani-selector-enabled")
   )
     return;
-  const allSelected = document.getElementsByClassName("dani-selector");
-  for (const selected of allSelected)
+  const all_selected = document.getElementsByClassName("dani-selector");
+  for (const selected of all_selected)
     selected.classList.remove("dani-selector");
   e.target.classList.add("dani-selector");
 };
 
-const copySelectorForNodeWithMouse = (e) => {
+const record_action = () => {
   if (
     !document.getElementById("dani").classList.contains("dani-selector-enabled")
   )
     return;
 
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  e.stopPropagation();
-
   document.getElementById("dani").classList.remove("dani-selector-enabled");
 
   const selected = document.querySelector(".dani-selector");
-  if (!selected) return;
+  if (!selected) 
+    return;
   selected.classList.remove("dani-selector");
   const result = find_selector_for(selected);
-  // if (
-  //   !result.selector ||
-  //   find_element(result.selector, result.with) !== selected
-  // ) {
-  //   document.getElementById("error").textContent =
-  //     "Unable to find selector for node.";
-  //   return;
-  // }
   document.getElementById("error").textContent = "";
-  copy_content(result.fullSelector);
+  document.getElementById("success").textContent = "Action added to the list of actions.";
 
-  const prevent = (e) => {
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    e.stopPropagation();
-    setTimeout(() => {
-      selected.removeEventListener("mouseup", prevent);
-      selected.removeEventListener("pointerup", prevent);
-      selected.removeEventListener("click", prevent);
-    }, 100);
-  };
-  selected.addEventListener("mouseup", prevent);
-  selected.addEventListener("pointerup", prevent);
-  selected.addEventListener("click", prevent);
+  switch (selected.tagName) {
+  case "BUTTON":
+    document.getElementById("instructions").value += `\nclick ${result.fullSelector}\n`;
+    break;
+  case "INPUT":
+    document.getElementById("instructions").value += `\ntype [text] in ${result.fullSelector}\n`;
+    break;
+  case "SELECT":
+    document.getElementById("instructions").value += `\nchoose [option] in ${result.fullSelector}\n`;
+    break;
+  default:
+    document.getElementById("instructions").value += `\nfind ${result.fullSelector}\n`;
+    break;
+  }
+  document.getElementById("instructions").value = document.getElementById("instructions").value.trim() + "\n";
+  localStorage.setItem("instructions_draft", document.getElementById("instructions").value);
 };
 
 const create_menu = () => {
@@ -733,22 +667,22 @@ intervention (helpful message)
       <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
         <button type="button" id="play">▶️</button>
         <button type="button" id="pause">⏸️</button>
-        <!--<button type="button" id="restart">🔄</button>-->
+        <button type="button" id="restart">🔄</button>
         <button type="button" id="select-node">🎯</button>
         <button type="button" id="documentation">📘</button>
       </div>
     </div>
     <div id="error" style="color: red; width: 300px; font-family: courier; font-size: 12px;"></div>
-    <div id="success" style="color: green; width: 300px;"></div>
+    <div id="success" style="color: green; width: 300px; font-family: courier; font-size: 12px;"></div>
     <textarea id="instructions" style="flex: 1; width: 300px; padding: 10px; font-size: 14px; line-height: 28px; font-family: courier; border: 1px solid black; border-radius: 5px;" placeholder="Enter commands."></textarea>
   </div>`;
   document.body.append(menu);
   document.getElementById("toggle-dani-menu").addEventListener("click", () => {
     document.getElementById("dani").classList.toggle("dani-hide");
   });
-  document.getElementById("play").addEventListener("click", handlePlay);
-  document.getElementById("pause").addEventListener("click", handlePause);
-  // document.getElementById("restart").addEventListener("click", handle_restart);
+  document.getElementById("play").addEventListener("click", handle_play);
+  document.getElementById("pause").addEventListener("click", handle_pause);
+  document.getElementById("restart").addEventListener("click", handle_restart);
   document
     .getElementById("documentation")
     .addEventListener("click", open_documentation);
@@ -757,8 +691,8 @@ intervention (helpful message)
       document.getElementById("dani").classList.add("dani-selector-enabled");
     }, 10);
   });
-  document.addEventListener("mousemove", showNodeWithMouse);
-  document.addEventListener("mousedown", copySelectorForNodeWithMouse);
+  document.addEventListener("mousemove", highlight_node_with_mouse);
+  document.addEventListener("click", record_action);
   document.getElementById("instructions").addEventListener("input", (e) => {
     const content = e.target.value;
     const is_running =
@@ -774,14 +708,10 @@ intervention (helpful message)
 const run_pending_commands = () => {
   update_logs();
   const instructions = JSON.parse(localStorage.getItem("instructions") || "[]");
-  const resizeOperation = instructions.find((instruction) =>
-    instruction.instruction.startsWith("resize "),
-  );
-  if (!window.opener && resizeOperation) return;
-  setTimeout(() => {
-    handle_instruction(default_tries);
-  }, wait_before_each_action
-);
+  const resize_operation = instructions.find((instruction) => instruction.instruction.startsWith("resize "));
+  if (!window.opener && resize_operation)
+    return;
+  setTimeout(() => handle_instruction(default_tries), wait_before_each_action);
 };
 
 window.addEventListener("load", () => {
