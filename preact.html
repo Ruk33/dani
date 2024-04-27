@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dani with Preact</title>
+</head>
+<body>
+<script type="module">
+    import { h, render } from 'https://esm.sh/preact';
+    import { useState } from 'https://esm.sh/preact/hooks';
+    import htm from 'https://esm.sh/htm';
+
+    // Initialize htm with Preact
+    const html = htm.bind(h);
+
+    function App (props) {
+        const [value, setValue] = useState(0);
+        return html`
+        <div>
+            <div>value: ${value}</div>
+            <div>
+                <button type="button" onClick=${() => setValue(value + 1)}>
+                    increase
+                </button>
+                <input /><input />
+                <select>
+                    <option value="lorem">lorem</option>
+                    <option value="ipsum">ipsum</option>
+                </select><input />
+                <div><input /></div>
+            </div>
+        </div>`;
+    }
+
+    render(html`<${App} name="World" />`, document.body);
+</script>
+
+<script type="text/javascript" src="dani.js"></script>
+</body>
+</html>
