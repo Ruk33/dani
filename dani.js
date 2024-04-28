@@ -67,7 +67,7 @@ const get_selector = (element) => {
         return {
             selector: element.tagName.toLowerCase(),
             with: element.textContent.trim(),
-            fullSelector: `${element.tagName.toLowerCase()} with ${element.textContent}`,
+            fullSelector: `${element.tagName.toLowerCase()} with ${element.textContent.trim()}`,
         };
 
     if (element.id)
