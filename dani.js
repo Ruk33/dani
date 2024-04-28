@@ -470,7 +470,7 @@ const handle_play = () => {
         instruction.instruction.startsWith("resize "),
     );
     if (!window.opener && resize_operation) {
-        window.open("/", "", "left=0,top=0");
+        window.open(document.location.href, "", "left=0,top=0");
         return;
     }
 
@@ -519,6 +519,7 @@ const record_action = () => {
         return;
 
     document.getElementById("dani").classList.remove("dani-selector-enabled");
+    document.getElementById("toggle-dani-menu").click();
 
     const selected = document.querySelector(".dani-selector");
     if (!selected) 
@@ -537,6 +538,9 @@ const record_action = () => {
         break;
     case "SELECT":
         document.getElementById("instructions").value += `\nchoose [option] in ${result.fullSelector}\n`;
+        break;
+    case "A":
+        document.getElementById("instructions").value += `\nclick ${result.fullSelector}\n`;
         break;
     default:
         document.getElementById("instructions").value += `\nfind ${result.fullSelector}\n`;
@@ -659,6 +663,7 @@ intervention (helpful message)
         .getElementById("documentation")
         .addEventListener("click", open_documentation);
     document.getElementById("select-node").addEventListener("click", () => {
+        document.getElementById("toggle-dani-menu").click();
         setTimeout(() => {
             document.getElementById("dani").classList.add("dani-selector-enabled");
         }, 10);
