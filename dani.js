@@ -66,7 +66,7 @@ const get_selector = (element) => {
     if (element.textContent)
         return {
             selector: element.tagName.toLowerCase(),
-            with: element.textContent,
+            with: element.textContent.trim(),
             fullSelector: `${element.tagName.toLowerCase()} with ${element.textContent}`,
         };
 
@@ -134,9 +134,7 @@ const find_element = (query, content, find_all) => {
         if (element) {
             if (content !== undefined) {
                 let matches = false;
-                if (element.getAttribute("textContent") === content) 
-                    matches = true;
-                if (element.textContent && element.textContent === content)
+                if (element.textContent && element.textContent.trim() === content)
                     matches = true;
                 if (element.value && element.value === content) 
                     matches = true;
