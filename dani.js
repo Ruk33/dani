@@ -323,18 +323,12 @@ const handle_instruction = (tries) => {
                 setTimeout(() => handle_instruction(tries - 1), 500);
                 return;
             }
-            // element.dispatchEvent(new MouseEvent("mouseover"));
-            // element.dispatchEvent(new MouseEvent("mousedown"));
-            // element.dispatchEvent(new MouseEvent("mouseup"));
-            // element.dispatchEvent(new MouseEvent("click"));
-            
-            element.dispatchEvent(new PointerEvent("pointerover"));
-            element.dispatchEvent(new PointerEvent("pointerenter"));
-            element.dispatchEvent(new PointerEvent("pointerdown"));
-            element.dispatchEvent(new PointerEvent("pointerup"));
-            element.dispatchEvent(new MouseEvent("click"));
 
-            // element.click();
+            element.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+            element.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+            element.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+            element.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
             complete_instruction();
             setTimeout(() => handle_instruction(default_tries), wait_before_each_action);
         }
