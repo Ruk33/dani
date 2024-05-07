@@ -1,0 +1,29 @@
+dani
+    this tool allows to run actions, such as clicking, typing, etc. in a page.
+
+how to use?
+    add <script src="https://raw.githack.com/Ruk33/dani/master/dani.js"></script>
+    at the bottom of your page. that's it. with this, the tool will show up
+    and you are ready to feed in actions. the documentation resides inside
+    this tool.
+
+how do these "actions" look like?
+    here is a list of actions which, type "text" into an input and clicks
+    a button with a label "increase":
+
+    type [text] in INPUT:nth-of-type(3)
+    click button with increase
+
+examples?
+    check preact.html, which simulates a single page application using preact
+    (an alternative, very similar library to react) having this tool already
+    running.
+
+why?
+    this tool was intended for doing qa/automation, and usually, there is way
+    too much config/setup to do upfront to simply do one thing, run some
+    actions that users may do in a webpage. this tool can do that without any
+    configs. just jump into your page and start running actions or testing it!
+
+license
+    mit

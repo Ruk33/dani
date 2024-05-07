@@ -7,6 +7,8 @@
 let default_tries = 99;
 let wait_before_each_action = 650;
 
+const by_id = (id) => document.getElementById(id);
+
 const extract_selector = (from) => {
     const selector =
         /\s(?<selector>(([.#])?[a-z0-9_-]*(\:[a-z0-9_-]+(\(.*?\))?|\[.*?\])?\>?)+)((\swith\s(?<with>(.+)))?)/i;
@@ -195,7 +197,7 @@ const update_logs = () => {
     const instructions = JSON.parse(localStorage.getItem("instructions") || "[]");
     const next = instructions.find((instruction) => !instruction.done);
 
-    const log = document.getElementById("instructions");
+    const log = by_id("instructions");
     log.value = "";
     const resize_operation = instructions.find((instruction) =>
         instruction.instruction.startsWith("resize "),
@@ -210,11 +212,11 @@ const update_logs = () => {
         else log.value += `😴 ${instructions[i].instruction}\n`;
     }
 
-    document.getElementById("success").textContent = "";
-    document.getElementById("error").textContent = "";
+    by_id("success").textContent = "";
+    by_id("error").textContent = "";
 
     if (!next) {
-        document.getElementById("success").textContent = "All done!";
+        by_id("success").textContent = "All done!";
         log.value = "";
         for (let i = 0; i < instructions.length; i++) {
             log.value += `${instructions[i].instruction}\n`;
@@ -237,10 +239,8 @@ const complete_instruction = () => {
 
 const complete_intervention = () => {
     complete_instruction();
-    document
-        .getElementById("play")
-        .removeEventListener("click", complete_intervention);
-    document.getElementById("play").addEventListener("click", handle_play);
+    by_id("play").removeEventListener("click", complete_intervention);
+    by_id("play").addEventListener("click", handle_play);
     setTimeout(() => handle_instruction(default_tries), wait_before_each_action);
 };
 
@@ -248,7 +248,7 @@ const test_all = async () => {
     const response = await fetch("/api/qa/test");
     const tests = await response.json();
     const instructions = tests.instructions;
-    document.getElementById("instructions").value = instructions;
+    by_id("instructions").value = instructions;
     handle_play();
 };
 
@@ -260,8 +260,7 @@ const handle_instruction = (tries) => {
     // textarea with whatever the user typed before
     // running all the actions.
     if (!next) {
-        document.getElementById("instructions").value =
-            localStorage.getItem("instructions_draft") || "" + "\n";
+        by_id("instructions").value = localStorage.getItem("instructions_draft") || "" + "\n";
         return;
     }
 
@@ -279,9 +278,9 @@ const handle_instruction = (tries) => {
             name = `Error in <a href="vscode://file/${full_name}:${line}">${full_name}</a> line ${line}`;
             break;
         }
-        document.getElementById("error").innerHTML = `Unable to complete: ${next.instruction}. ${name}`;
+        by_id("error").innerHTML = `Unable to complete: ${next.instruction}. ${name}`;
         localStorage.removeItem("instructions");
-        const log = document.getElementById("instructions");
+        const log = by_id("instructions");
         log.value = "";
         for (let i = 0; i < instructions.length; i++) {
             log.value += `${instructions[i].instruction}\n`;
@@ -383,7 +382,7 @@ const handle_instruction = (tries) => {
         }
         break;
         case "intervention": {
-            document.getElementById("error").textContent =
+            by_id("error").textContent =
                 `User intervention requested: ${next.instruction.replace("intervention ", "")}. Once YOU finished the action, click ▶️ to continue.`;
             document
                 .getElementById("play")
@@ -453,7 +452,7 @@ const handle_instruction = (tries) => {
 };
 
 const handle_play = () => {
-    const raw_instructions = document.getElementById("instructions").value;
+    const raw_instructions = by_id("instructions").value;
 
     const instructions = raw_instructions
         .split("\n")
@@ -482,12 +481,12 @@ const handle_play = () => {
 };
 
 const handle_pause = () => {
-    const instructions = JSON.parse(
-        localStorage.getItem("instructions") || "[]",
-    ).map((instruction) => ({ ...instruction, done: true }));
+    const instructions = 
+        JSON.parse(localStorage.getItem("instructions") || "[]")
+        .map((instruction) => ({ ...instruction, done: true }));
     localStorage.setItem("instructions", JSON.stringify(instructions));
     update_logs();
-    document.getElementById("success").textContent = "Paused";
+    by_id("success").textContent = "Paused";
 };
 
 const handle_restart = () => {
@@ -501,13 +500,11 @@ const handle_restart = () => {
 };
 
 const open_documentation = () => {
-    document.getElementById("documentation-dialog").showModal();
+    by_id("documentation-dialog").showModal();
 };
 
 const highlight_node_with_mouse = (e) => {
-    if (
-        !document.getElementById("dani").classList.contains("dani-selector-enabled")
-    )
+    if (!by_id("dani").classList.contains("dani-selector-enabled"))
         return;
     const all_selected = document.getElementsByClassName("dani-selector");
     for (const selected of all_selected)
@@ -516,42 +513,51 @@ const highlight_node_with_mouse = (e) => {
 };
 
 const record_action = () => {
-    if (
-        !document.getElementById("dani").classList.contains("dani-selector-enabled")
-    )
+    if (!by_id("dani").classList.contains("dani-selector-enabled"))
         return;
 
-    document.getElementById("dani").classList.remove("dani-selector-enabled");
-    document.getElementById("toggle-dani-menu").click();
+    by_id("dani").classList.remove("dani-selector-enabled");
+    by_id("toggle-dani-menu").click();
 
     const selected = document.querySelector(".dani-selector");
     if (!selected) 
         return;
     selected.classList.remove("dani-selector");
     const result = find_selector_for(selected);
-    document.getElementById("error").textContent = "";
-    document.getElementById("success").textContent = "Action added to the list of actions.";
+    by_id("error").textContent = "";
+    by_id("success").textContent = "Action added to the list of actions.";
 
     switch (selected.tagName) {
     case "BUTTON":
-        document.getElementById("instructions").value += `\nclick ${result.fullSelector}\n`;
+        by_id("instructions").value += `\nclick ${result.fullSelector}\n`;
         break;
     case "INPUT":
-        document.getElementById("instructions").value += `\ntype [text] in ${result.fullSelector}\n`;
+        by_id("instructions").value += `\ntype [text] in ${result.fullSelector}\n`;
         break;
     case "SELECT":
-        document.getElementById("instructions").value += `\nchoose [option] in ${result.fullSelector}\n`;
+        by_id("instructions").value += `\nchoose [option] in ${result.fullSelector}\n`;
         break;
     case "A":
-        document.getElementById("instructions").value += `\nclick ${result.fullSelector}\n`;
+        by_id("instructions").value += `\nclick ${result.fullSelector}\n`;
         break;
     default:
-        document.getElementById("instructions").value += `\nfind ${result.fullSelector}\n`;
+        by_id("instructions").value += `\nfind ${result.fullSelector}\n`;
         break;
     }
-    document.getElementById("instructions").value = document.getElementById("instructions").value.trim() + "\n";
-    localStorage.setItem("instructions_draft", document.getElementById("instructions").value);
+    by_id("instructions").value = by_id("instructions").value.trim() + "\n";
+    localStorage.setItem("instructions_draft", by_id("instructions").value);
 };
+
+const save_instructions = (e) => {
+    const content = e.target.value;
+    const is_running =
+        content.includes("🛠️") ||
+        content.includes("✅") ||
+        content.includes("😴");
+    if (is_running)
+        return;
+    localStorage.setItem("instructions_draft", content);
+}
 
 const create_menu = () => {
     const menu = document.createElement("div");
@@ -573,7 +579,6 @@ const create_menu = () => {
     .dani-selector {
         border: 2px solid red !important;
     }
-    .dani-selector-enabled {}
     .dani-hide {
         transform: translateX(295px);
     }
@@ -640,6 +645,7 @@ intervention (helpful message)
             <button>❌</button>
         </form>
     </dialog>
+
     <div style="display: flex; flex-direction: column; height: 100%;">
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 10px;">
             <button id="toggle-dani-menu" type="button">👉</button>
@@ -655,34 +661,26 @@ intervention (helpful message)
         <div id="success" style="color: green; width: 300px; font-family: courier; font-size: 12px;"></div>
         <textarea id="instructions" style="flex: 1; width: 300px; padding: 10px; font-size: 14px; line-height: 28px; font-family: courier; border: 1px solid black; border-radius: 5px;" placeholder="Enter commands."></textarea>
     </div>`;
+    
     document.body.append(menu);
-    document.getElementById("toggle-dani-menu").addEventListener("click", () => {
-        document.getElementById("dani").classList.toggle("dani-hide");
+
+    by_id("toggle-dani-menu").addEventListener("click", () => {
+        by_id("dani").classList.toggle("dani-hide");
     });
-    document.getElementById("play").addEventListener("click", handle_play);
-    document.getElementById("pause").addEventListener("click", handle_pause);
-    document.getElementById("restart").addEventListener("click", handle_restart);
-    document
-        .getElementById("documentation")
-        .addEventListener("click", open_documentation);
-    document.getElementById("select-node").addEventListener("click", () => {
-        document.getElementById("toggle-dani-menu").click();
+    by_id("play").addEventListener("click", handle_play);
+    by_id("pause").addEventListener("click", handle_pause);
+    by_id("restart").addEventListener("click", handle_restart);
+    by_id("documentation").addEventListener("click", open_documentation);
+    by_id("select-node").addEventListener("click", () => {
+        by_id("toggle-dani-menu").click();
         setTimeout(() => {
-            document.getElementById("dani").classList.add("dani-selector-enabled");
+            by_id("dani").classList.add("dani-selector-enabled");
         }, 10);
     });
+    by_id("instructions").addEventListener("input", save_instructions);
+
     document.addEventListener("mousemove", highlight_node_with_mouse);
-    document.addEventListener("click", record_action);
-    document.getElementById("instructions").addEventListener("input", (e) => {
-        const content = e.target.value;
-        const is_running =
-            content.includes("🛠️") ||
-            content.includes("✅") ||
-            content.includes("😴");
-        if (is_running)
-            return;
-        localStorage.setItem("instructions_draft", content);
-    });
+    document.addEventListener("mouseup", record_action);
 };
 
 const run_pending_commands = () => {

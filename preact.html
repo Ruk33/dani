@@ -6,8 +6,10 @@
     <title>Dani with Preact</title>
 </head>
 <body>
-    <h1>These actions must run and succeed</h1>
-    <textarea style="width: 300px; height: 300px;">
+
+<h1>These actions must run and succeed</h1>
+<p>To test it, simply copy all these actions into the tool and hit ▶️</p>
+<pre style="width: 300px; height: 300px; border: 1px solid black;">
 type [this] in INPUT:nth-of-type(3)
 
 find select with lorem
@@ -17,12 +19,8 @@ reload
 choose [lorem] in select with lorem
 
 type [text] in INPUT:nth-of-type(3)
-    </textarea>
-    <button>
-        
-        testing.
+</pre>
 
-    </button>
 <script type="module">
     import { h, render } from 'https://esm.sh/preact';
     import { useState } from 'https://esm.sh/preact/hooks';
@@ -60,5 +58,6 @@ type [text] in INPUT:nth-of-type(3)
 </script>
 
 <script type="text/javascript" src="dani.js"></script>
+
 </body>
 </html>
