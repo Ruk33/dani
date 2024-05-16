@@ -618,7 +618,7 @@ const create_menu = () => {
         border: 2px solid red !important;
     }
     .dani-hide {
-        transform: translateX(510px);
+        transform: translateX(490px);
     }
     .dani-instructions {
         outline: none;
