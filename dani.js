@@ -380,7 +380,11 @@ const handle_instruction = (tries) => {
         }
         break;
         case "visit": {
-            complete_instruction();
+            if (window.location.pathname === params[1]) {
+                complete_instruction();
+                setTimeout(() => handle_instruction(default_tries), wait_before_each_action);
+                return;
+            }
             window.location.href = params[1];
         }
         break;
