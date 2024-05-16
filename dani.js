@@ -323,6 +323,9 @@ const handle_instruction = (tries) => {
                 return;
             }
 
+            element.dispatchEvent(new MouseEvent("pointerover", { bubbles: true }));
+            element.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true }));
+            element.dispatchEvent(new MouseEvent("pointerup", { bubbles: true }));
             element.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
             element.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
             element.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
