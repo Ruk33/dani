@@ -379,12 +379,17 @@ const handle_instruction = (tries) => {
             location.reload();
         }
         break;
-        case "visit": {
+        case "goto": {
             if (window.location.pathname === params[1]) {
                 complete_instruction();
                 setTimeout(() => handle_instruction(default_tries), wait_before_each_action);
                 return;
             }
+            window.location.href = params[1];
+        }
+        break;
+        case "visit": {
+            complete_instruction();
             window.location.href = params[1];
         }
         break;
@@ -636,8 +641,13 @@ resize width height
         Example: resize 800 600
 
 visit (url)
-        Visits url/uri.
+        Visits url/uri without doing any checks. This is useful for URLS having redirects, where we don't really care what URL we end up in, we just want to visit the URL.
         Example: visit /products
+
+goto (url)
+        Similar to visit, but it will only complete the instruction if the URL matches url.
+        Example: goto /products
+        If, after running goto /products, the URL doesn't match "/products" the tool will try again.
 
 clear (storage|cookies|all)
         Clears storage, cookies, or both and reloads the page.
