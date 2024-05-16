@@ -1,13 +1,9 @@
-// next steps
-// - headless using puppeteer
-// - if a file of instructions fail, report and continue with the next file
-// - if running headless, skip files containing "intervention" instructions
-// - stats/count tests/instruction
-
-let default_tries = 99;
-let wait_before_each_action = Number(localStorage.getItem("waitBeforeEachAction")) || 650;
+const default_tries = 99;
+const wait_before_each_action = Number(localStorage.getItem("waitBeforeEachAction")) || 650;
 
 const by_id = (id) => document.getElementById(id);
+
+const get_instructions = () => JSON.parse(localStorage.getItem("instructions") || "[]");
 
 const extract_selector = (from) => {
     const selector =
@@ -32,58 +28,62 @@ const parse_type_in = (instruction) => {
 
 const clear_cookies = () => {
     const now = new Date().toUTCString();
-    document.cookie.split(";").forEach((c) => {
-        document.cookie = c
-            .replace(/^ +/, "")
-            .replace(/=.*/, "=;expires=" + now + ";path=/");
-    });
+    const cookies = document.cookie.split(";");
+    const expire = (cookie) => document.cookie = cookie.replace(/^ +/, "").replace(/=.*/, "=;expires=" + now + ";path=/");
+    cookies.forEach(expire);
 };
 
 const is_element_hidden = (element) => {
     if (!element) 
         return true;
+    
     const styles = element.computedStyleMap();
-    return (
-        styles.get("display").value === "none" ||
-        styles.get("opacity").value === 0 ||
-        styles.get("visibility").value === "hidden"
-    );
+
+    const notDisplayed = styles.get("display").value === "none";
+    const withoutOpacity = styles.get("opacity").value === 0;
+    const invisible = styles.get("visibility").value === "hidden";
+    
+    const hidden = notDisplayed || withoutOpacity || invisible;
+    return hidden;
 };
 
 const get_selector = (element) => {
+    const tag = element.tagName.toLowerCase();
+
     if (element.value)
         return {
-            selector: element.tagName.toLowerCase(),
+            selector: tag,
             with: element.value,
-            fullSelector: `${element.tagName.toLowerCase()} with ${element.value}`,
+            fullSelector: `${tag} with ${element.value}`,
         };
 
     if (element.placeholder)
         return {
-            selector: element.tagName.toLowerCase(),
+            selector: tag,
             with: element.placeholder,
-            fullSelector: `${element.tagName.toLowerCase()} with ${element.placeholder}`,
+            fullSelector: `${tag} with ${element.placeholder}`,
         };
 
     if (element.textContent)
         return {
-            selector: element.tagName.toLowerCase(),
+            selector: tag,
             with: element.textContent.trim(),
-            fullSelector: `${element.tagName.toLowerCase()} with ${element.textContent.trim()}`,
+            fullSelector: `${tag} with ${element.textContent.trim()}`,
         };
 
     if (element.id)
         return {
-            selector: `${element.tagName.toLowerCase()}[id=${element.id}]`,
+            selector: `${tag}[id=${element.id}]`,
             with: undefined,
-            fullSelector: `${element.tagName.toLowerCase()}[id=${element.id}]`,
+            fullSelector: `${tag}[id=${element.id}]`,
         };
 
-    if (element.className)
+    // Do not use the class selector if the string is too long.
+    if (element.className && element.className.length < 32)
         return {
-            selector: `${element.tagName.toLowerCase()}[class='${element.className}']`,
+            selector: `${tag}[class='${element.className}']`,
             with: undefined,
-            fullSelector: `${element.tagName.toLowerCase()}[class='${element.className}']`,
+            fullSelector: `${tag}[class='${element.className}']`,
         };
 
     return {
@@ -96,10 +96,11 @@ const get_selector = (element) => {
 const find_selector_for = (element) => {
     const possible_selector = get_selector(element);
     if (possible_selector.selector) {
+        const find_all_matches = true;
         const elements = find_element(
             possible_selector.selector,
             possible_selector.with,
-            true,
+            find_all_matches,
         );
         let is_valid = true;
         for (let i = 1; i < elements.length; i++) {
@@ -194,7 +195,7 @@ const type_in = (input, what, tries) => {
 };
 
 const update_logs = () => {
-    const instructions = JSON.parse(localStorage.getItem("instructions") || "[]");
+    const instructions = get_instructions();
     const next = instructions.find((instruction) => !instruction.done);
 
     const log = by_id("instructions");
@@ -208,7 +209,7 @@ const update_logs = () => {
         else if (instructions[i] === next)
             log.value += `🛠️ ${instructions[i].instruction}\n`;
         else if (instructions[i].done)
-            log.value += `✅ ${instructions[i].instruction}\n`;
+            log.value += ``;
         else log.value += `😴 ${instructions[i].instruction}\n`;
     }
 
@@ -227,7 +228,7 @@ const update_logs = () => {
 };
 
 const complete_instruction = () => {
-    const instructions = JSON.parse(localStorage.getItem("instructions") || "[]");
+    const instructions = get_instructions();
     const next = instructions.find((instruction) => !instruction.done);
     if (!next)
         return;
@@ -253,7 +254,7 @@ const test_all = async () => {
 };
 
 const handle_instruction = (tries) => {
-    const instructions = JSON.parse(localStorage.getItem("instructions") || "[]");
+    const instructions = get_instructions();
     const next = instructions.find((instruction) => !instruction.done);
 
     // No more instructions to run, just replace the 
@@ -280,6 +281,7 @@ const handle_instruction = (tries) => {
         }
         by_id("error").innerHTML = `Unable to complete: ${next.instruction}. ${name}`;
         localStorage.removeItem("instructions");
+
         const log = by_id("instructions");
         log.value = "";
         for (let i = 0; i < instructions.length; i++) {
@@ -430,7 +432,7 @@ const handle_instruction = (tries) => {
                 }
                 break;
                 case "all": {
-                    const instructions = JSON.parse(localStorage.getItem("instructions") || "[]");
+                    const instructions = get_instructions();
                     const instructions_draft = localStorage.getItem("instructions_draft");
                     sessionStorage.clear();
                     localStorage.clear();
@@ -502,7 +504,7 @@ const handle_pause = () => {
 };
 
 const handle_restart = () => {
-    const instructions = JSON.parse(localStorage.getItem("instructions") || "[]");
+    const instructions = get_instructions();
     const all_restarted = instructions.map((instruction) => ({
         ...instruction,
         done: false,
@@ -571,6 +573,15 @@ const save_instructions = (e) => {
     localStorage.setItem("instructions_draft", content);
 }
 
+const toggle_menu_visibility = () => {
+    by_id("dani").classList.toggle("dani-hide");
+}
+
+const enable_select_node_mode = () => {
+    toggle_menu_visibility();
+    by_id("dani").classList.add("dani-selector-enabled");
+}
+
 const create_menu = () => {
     const menu = document.createElement("div");
     menu.id = "dani";
@@ -579,20 +590,46 @@ const create_menu = () => {
     #dani {
         transition: all 200ms; 
         position: fixed;
-        height: calc(100vh - 20px); 
-        top: -1px; 
-        right: 0; 
-        padding: 10px;
-        border: 1px solid black; 
+        height: calc(100vh - 40px);
+        top: 0; 
+        right: 0;
+        margin: 10px;
         background-color: white; 
         z-index: 999; 
         pointer-events: all;
+    }
+    .dani-content {
+        display: flex; 
+        flex-direction: column; 
+        height: 100%;
+        padding: 10px;
+        box-shadow: 0 15px 70px 5px rgba(38,27,35,0.15), 0 1px 1px rgba(38,27,35,0.04);
+        border-radius: 10px;
+        border: 1px solid #ebeae8;
+    }
+    .dani-button {
+        border: 0;
+        padding: 4px;
+        border-radius: 2px;
+        background-color: rgba(38,27,35,0.05);
+        cursor: pointer;
     }
     .dani-selector {
         border: 2px solid red !important;
     }
     .dani-hide {
-        transform: translateX(295px);
+        transform: translateX(510px);
+    }
+    .dani-instructions {
+        outline: none;
+        flex: 1;
+        width: 500px;
+        padding: 10px;
+        font-size: 14px;
+        line-height: 28px;
+        font-family: consolas;
+        border: 1px dashed #eeedee; border-radius: 5px;
+        color: #5c5c5b;
     }
     </style>
     <dialog id="documentation-dialog">
@@ -663,37 +700,30 @@ intervention (helpful message)
         </form>
     </dialog>
 
-    <div style="display: flex; flex-direction: column; height: 100%;">
+    <div class="dani-content">
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 10px;">
-            <button id="toggle-dani-menu" type="button">👉</button>
+            <button id="toggle-dani-menu" class="dani-button" type="button">🤏</button>
             <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-                <button type="button" id="play">▶️</button>
-                <button type="button" id="pause">⏸️</button>
-                <button type="button" id="restart">🔄</button>
-                <button type="button" id="select-node">🎯</button>
-                <button type="button" id="documentation">📘</button>
+                <button class="dani-button" type="button" id="play">▶️</button>
+                <button class="dani-button" type="button" id="pause">⏸️</button>
+                <button class="dani-button" type="button" id="restart">🔄</button>
+                <button class="dani-button" type="button" id="select-node">🎯</button>
+                <button class="dani-button" type="button" id="documentation">📘</button>
             </div>
         </div>
-        <div id="error" style="color: red; width: 300px; font-family: courier; font-size: 12px;"></div>
-        <div id="success" style="color: green; width: 300px; font-family: courier; font-size: 12px;"></div>
-        <textarea id="instructions" style="flex: 1; width: 300px; padding: 10px; font-size: 14px; line-height: 28px; font-family: courier; border: 1px solid black; border-radius: 5px;" placeholder="Enter commands."></textarea>
+        <div id="error" style="color: red; width: 500px; font-family: consolas; font-size: 14px; padding: 5px;"></div>
+        <div id="success" style="color: #6bc73e; width: 500px; font-family: consolas; font-size: 14px; padding: 5px;"></div>
+        <textarea id="instructions" class="dani-instructions" placeholder="Enter commands."></textarea>
     </div>`;
     
     document.body.append(menu);
 
-    by_id("toggle-dani-menu").addEventListener("click", () => {
-        by_id("dani").classList.toggle("dani-hide");
-    });
+    by_id("toggle-dani-menu").addEventListener("click", toggle_menu_visibility);
     by_id("play").addEventListener("click", handle_play);
     by_id("pause").addEventListener("click", handle_pause);
     by_id("restart").addEventListener("click", handle_restart);
     by_id("documentation").addEventListener("click", open_documentation);
-    by_id("select-node").addEventListener("click", () => {
-        by_id("toggle-dani-menu").click();
-        setTimeout(() => {
-            by_id("dani").classList.add("dani-selector-enabled");
-        }, 10);
-    });
+    by_id("select-node").addEventListener("click", enable_select_node_mode);
     by_id("instructions").addEventListener("input", save_instructions);
 
     document.addEventListener("mousemove", highlight_node_with_mouse);
@@ -702,7 +732,7 @@ intervention (helpful message)
 
 const run_pending_commands = () => {
     update_logs();
-    const instructions = JSON.parse(localStorage.getItem("instructions") || "[]");
+    const instructions = get_instructions();
     const resize_operation = instructions.find((instruction) => instruction.instruction.startsWith("resize "));
     if (!window.opener && resize_operation)
         return;
@@ -711,5 +741,6 @@ const run_pending_commands = () => {
 
 window.addEventListener("load", () => {
     create_menu();
-    setTimeout(run_pending_commands, 2000);
+    run_pending_commands();
+    toggle_menu_visibility();
 });
