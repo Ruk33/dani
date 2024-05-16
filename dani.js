@@ -5,7 +5,7 @@
 // - stats/count tests/instruction
 
 let default_tries = 99;
-let wait_before_each_action = 650;
+let wait_before_each_action = Number(localStorage.getItem("waitBeforeEachAction")) || 650;
 
 const by_id = (id) => document.getElementById(id);
 
