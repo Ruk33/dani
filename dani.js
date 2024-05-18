@@ -396,8 +396,9 @@ const handle_instruction = (tries) => {
         }
         break;
         case "intervention": {
-            by_id("error").textContent =
-                `User intervention requested: ${next.instruction.replace("intervention ", "")}. Once YOU finished the action, click ▶️ to continue.`;
+            by_id("error").innerHTML =
+                `User intervention requested:<br/>${next.instruction.replace("intervention ", "")}.<br/><br/>Once YOU finished the action, click ▶️ to continue.`;
+            show_menu();
             document
                 .getElementById("play")
                 .removeEventListener("click", handle_play);
@@ -576,6 +577,10 @@ const save_instructions = (e) => {
 
 const toggle_menu_visibility = () => {
     by_id("dani").classList.toggle("dani-hide");
+}
+
+const show_menu = () => {
+    by_id("dani").classList.remove("dani-hide");
 }
 
 const enable_select_node_mode = () => {
