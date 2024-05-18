@@ -242,6 +242,7 @@ const complete_intervention = () => {
     complete_instruction();
     by_id("play").removeEventListener("click", complete_intervention);
     by_id("play").addEventListener("click", handle_play);
+    hide_menu();
     setTimeout(() => handle_instruction(default_tries), wait_before_each_action);
 };
 
@@ -493,6 +494,8 @@ const handle_play = () => {
 
     update_logs();
     handle_instruction(default_tries);
+
+    hide_menu();
 };
 
 const handle_pause = () => {
@@ -581,6 +584,10 @@ const toggle_menu_visibility = () => {
 
 const show_menu = () => {
     by_id("dani").classList.remove("dani-hide");
+}
+
+const hide_menu = () => {
+    by_id("dani").classList.add("dani-hide");
 }
 
 const enable_select_node_mode = () => {
