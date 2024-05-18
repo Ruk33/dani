@@ -530,13 +530,12 @@ const record_action = () => {
     if (!by_id("dani").classList.contains("dani-selector-enabled"))
         return;
 
-    by_id("dani").classList.remove("dani-selector-enabled");
-    by_id("toggle-dani-menu").click();
-
     const selected = document.querySelector(".dani-selector");
-    if (!selected) 
+    if (!selected) {
+        exit_select_node_mode();
         return;
-    selected.classList.remove("dani-selector");
+    }
+
     const result = find_selector_for(selected);
     by_id("error").textContent = "";
     by_id("success").textContent = "Action added to the list of actions.";
@@ -560,6 +559,8 @@ const record_action = () => {
     }
     by_id("instructions").value = by_id("instructions").value.trim() + "\n";
     localStorage.setItem("instructions_draft", by_id("instructions").value);
+
+    exit_select_node_mode();
 };
 
 const save_instructions = (e) => {
@@ -580,6 +581,14 @@ const toggle_menu_visibility = () => {
 const enable_select_node_mode = () => {
     toggle_menu_visibility();
     by_id("dani").classList.add("dani-selector-enabled");
+}
+
+const exit_select_node_mode = () => {
+    toggle_menu_visibility();
+    by_id("dani").classList.remove("dani-selector-enabled");
+    const selected = document.getElementsByClassName("dani-selector");
+    for (const element of selected)
+        element.classList.remove("dani-selector");
 }
 
 const create_menu = () => {
@@ -727,6 +736,10 @@ intervention (helpful message)
     by_id("select-node").addEventListener("click", enable_select_node_mode);
     by_id("instructions").addEventListener("input", save_instructions);
 
+    document.addEventListener("keyup", (e) => {
+        if (e.key !== "Escape") return;
+        exit_select_node_mode();
+    });
     document.addEventListener("mousemove", highlight_node_with_mouse);
     document.addEventListener("mouseup", record_action);
 };
