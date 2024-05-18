@@ -151,7 +151,7 @@ const find_element = (query, content, find_all) => {
                 element.scrollIntoView(true);
                 // red highlight
                 const bg = element.style.background;
-                element.style.background = "red";
+                element.style.background = "#cedfff";
                 setTimeout(() => {
                     element.style.background = bg;
                 }, 500);
@@ -615,7 +615,8 @@ const create_menu = () => {
         cursor: pointer;
     }
     .dani-selector {
-        border: 2px solid red !important;
+        transition: all 200ms; 
+        background-color: #cedfff !important;
     }
     .dani-hide {
         transform: translateX(490px);
