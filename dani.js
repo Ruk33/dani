@@ -50,6 +50,13 @@ const is_element_hidden = (element) => {
 const get_selector = (element) => {
     const tag = element.tagName.toLowerCase();
 
+    if (element.id)
+        return {
+            selector: `${tag}[id="${element.id}"]`,
+            with: undefined,
+            fullSelector: `${tag}[id="${element.id}"]`,
+        };
+
     if (element.value)
         return {
             selector: tag,
@@ -69,13 +76,6 @@ const get_selector = (element) => {
             selector: tag,
             with: element.textContent.trim(),
             fullSelector: `${tag} with ${element.textContent.trim()}`,
-        };
-
-    if (element.id)
-        return {
-            selector: `${tag}[id=${element.id}]`,
-            with: undefined,
-            fullSelector: `${tag}[id=${element.id}]`,
         };
 
     // Do not use the class selector if the string is too long.
