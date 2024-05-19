@@ -587,7 +587,6 @@ const record_action = () => {
 };
 
 const save_instructions = (e) => {
-    if (!e.target) return;
     const content = e.target.value;
     const is_running =
         content.includes("🛠️") ||
@@ -786,7 +785,7 @@ intervention (helpful message)
     });
     by_id("instructions").addEventListener("input", (e) => {
         e.stopPropagation();
-        save_instructions();
+        save_instructions(e);
     });
     by_id("instructions").addEventListener("mousedown", (e) => e.stopPropagation());
     by_id("instructions").addEventListener("mouseup", (e) => e.stopPropagation());
