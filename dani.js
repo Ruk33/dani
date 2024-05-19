@@ -129,16 +129,32 @@ const find_selector_for = (element) => {
     };
 };
 
+const find_child_with_text = (from, text) => {
+    if (!from) return undefined;
+
+    const children = from.children;
+    for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        if (child.textContent.trim() !== text)
+            continue;
+        return find_child_with_text(child, text);
+    }
+
+    return from;
+}
+
 const find_element = (query, content, find_all) => {
     const elements = document.querySelectorAll(query);
     const result = [];
     for (let i = 0; i < elements.length; i++) {
-        const element = elements[i];
+        let element = elements[i];
         if (element) {
             if (content !== undefined) {
                 let matches = false;
-                if (element.textContent && element.textContent.trim() === content)
+                if (element.textContent && element.textContent.trim() === content) {
+                    element = find_child_with_text(element, content);
                     matches = true;
+                }
                 if (element.value && element.value === content) 
                     matches = true;
                 if (element.placeholder && element.placeholder === content)
