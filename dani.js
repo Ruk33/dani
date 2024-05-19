@@ -587,6 +587,7 @@ const record_action = () => {
 };
 
 const save_instructions = (e) => {
+    if (!e.target) return;
     const content = e.target.value;
     const is_running =
         content.includes("🛠️") ||
@@ -787,6 +788,12 @@ intervention (helpful message)
         e.stopPropagation();
         save_instructions();
     });
+    by_id("instructions").addEventListener("mousedown", (e) => e.stopPropagation());
+    by_id("instructions").addEventListener("mouseup", (e) => e.stopPropagation());
+    by_id("instructions").addEventListener("click", (e) => e.stopPropagation());
+    by_id("instructions").addEventListener("keydown", (e) => e.stopPropagation());
+    by_id("instructions").addEventListener("keyup", (e) => e.stopPropagation());
+    by_id("instructions").addEventListener("keypress", (e) => e.stopPropagation());
 
     document.addEventListener("keyup", (e) => {
         if (e.key !== "Escape") return;
