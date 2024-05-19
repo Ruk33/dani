@@ -257,7 +257,10 @@ const complete_instruction = () => {
 const complete_intervention = () => {
     complete_instruction();
     by_id("play").removeEventListener("click", complete_intervention);
-    by_id("play").addEventListener("click", handle_play);
+    by_id("play").addEventListener("click", (e) => {
+        e.stopPropagation();
+        handle_play();
+    });
     hide_menu();
     setTimeout(() => handle_instruction(default_tries), wait_before_each_action);
 };
@@ -756,16 +759,39 @@ intervention (helpful message)
     
     document.body.append(menu);
 
-    by_id("toggle-dani-menu").addEventListener("click", toggle_menu_visibility);
-    by_id("play").addEventListener("click", handle_play);
-    by_id("pause").addEventListener("click", handle_pause);
-    by_id("restart").addEventListener("click", handle_restart);
-    by_id("documentation").addEventListener("click", open_documentation);
-    by_id("select-node").addEventListener("click", enable_select_node_mode);
-    by_id("instructions").addEventListener("input", save_instructions);
+    by_id("toggle-dani-menu").addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggle_menu_visibility()
+    });
+    by_id("play").addEventListener("click", (e) => {
+        e.stopPropagation();
+        handle_play();
+    });
+    by_id("pause").addEventListener("click", (e) => {
+        e.stopPropagation();
+        handle_pause();
+    });
+    by_id("restart").addEventListener("click", (e) => {
+        e.stopPropagation();
+        handle_restart();
+    });
+    by_id("documentation").addEventListener("click", (e) => {
+        e.stopPropagation();
+        open_documentation();
+    });
+    by_id("select-node").addEventListener("click", (e) => {
+        e.stopPropagation();
+        enable_select_node_mode();
+    });
+    by_id("instructions").addEventListener("input", (e) => {
+        e.stopPropagation();
+        save_instructions();
+    });
 
     document.addEventListener("keyup", (e) => {
         if (e.key !== "Escape") return;
+        if (!by_id("dani").classList.contains("dani-selector-enabled")) return;
+        e.stopPropagation();
         exit_select_node_mode();
     });
     document.addEventListener("mousemove", highlight_node_with_mouse);
