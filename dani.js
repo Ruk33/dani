@@ -17,7 +17,7 @@ const extract_selector = (from) => {
 
 const parse_type_in = (instruction) => {
     const selector =
-        /(type|choose)\s\[(?<to_type>(.*?))\]\sin\s(?<selector>(([.#])?[a-z0-9_-]*(\:[a-z0-9_-]+(\(.*?\))?|\[.*?\])?\>?)+)((\swith\s(?<with>(.+)))?)/i;
+        /(type|choose)\s\[(?<to_type>(.*?))\](\sin\s(?<selector>(([.#])?[a-z0-9_-]*(\:[a-z0-9_-]+(\(.*?\))?|\[.*?\])?\>?)+)((\swith\s(?<with>(.+)))?))?/i;
     const result = selector.exec(instruction);
     return {
         to_type: result?.groups?.to_type || "",
@@ -50,13 +50,6 @@ const is_element_hidden = (element) => {
 const get_selector = (element) => {
     const tag = element.tagName.toLowerCase();
 
-    if (element.id)
-        return {
-            selector: `${tag}[id="${element.id}"]`,
-            with: undefined,
-            fullSelector: `${tag}[id="${element.id}"]`,
-        };
-
     if (element.value)
         return {
             selector: tag,
@@ -76,6 +69,13 @@ const get_selector = (element) => {
             selector: tag,
             with: element.textContent.trim(),
             fullSelector: `${tag} with ${element.textContent.trim()}`,
+        };
+
+    if (element.id)
+        return {
+            selector: `${tag}[id="${element.id}"]`,
+            with: undefined,
+            fullSelector: `${tag}[id="${element.id}"]`,
         };
 
     // Do not use the class selector if the string is too long.
@@ -360,6 +360,19 @@ const handle_instruction = (tries) => {
         case "type":
         case "choose": {
             const query = parse_type_in(next.instruction);
+
+            // Try to see if we can type in the active element, meaning
+            // the current focused element.
+            if (!query.selector) {
+                const active_element = document.activeElement;
+                switch (active_element.tagName) {
+                case "INPUT":
+                case "SELECT":
+                    type_in(active_element, query.to_type, tries);
+                    return;
+                }
+            }
+
             const element = find_element(query.selector, query.with);
             if (!element) {
                 setTimeout(() => {
@@ -574,6 +587,9 @@ const record_action = () => {
         by_id("instructions").value += `\nchoose [option] in ${result.fullSelector}\n`;
         break;
     case "A":
+        by_id("instructions").value += `\nclick ${result.fullSelector}\n`;
+        break;
+    case "LABEL":
         by_id("instructions").value += `\nclick ${result.fullSelector}\n`;
         break;
     default:
