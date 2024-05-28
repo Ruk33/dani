@@ -5,6 +5,16 @@ const by_id = (id) => document.getElementById(id);
 
 const get_instructions = () => JSON.parse(localStorage.getItem("instructions") || "[]");
 
+const all_nodes = (result, element) => {
+    if (!element)
+        return result;
+    const children = element.children || [];
+    result.push(...children);
+    for (let i = 0; i < children.length; i++)
+        all_nodes(result, children[i]);
+    return result;
+}
+
 const extract_selector = (from) => {
     const selector =
         /\s(?<selector>(([.#])?[a-z0-9_-]*(\:[a-z0-9_-]+(\(.*?\))?|\[.*?\])?\>?)+)((\swith\s(?<with>(.+)))?)/i;
@@ -78,14 +88,6 @@ const get_selector = (element) => {
             fullSelector: `${tag}[id="${element.id}"]`,
         };
 
-    // Do not use the class selector if the string is too long.
-    if (element.className && element.className.length < 32)
-        return {
-            selector: `${tag}[class='${element.className}']`,
-            with: undefined,
-            fullSelector: `${tag}[class='${element.className}']`,
-        };
-
     return {
         selector: "",
         with: undefined,
@@ -114,11 +116,11 @@ const find_selector_for = (element) => {
     }
 
     let selector = "";
-    const nodes = document.querySelectorAll(element.tagName);
+    const nodes = all_nodes([], document.body);
     for (let i = 0; i < nodes.length; i++) {
         if (nodes[i] !== element)
             continue;
-        selector = `${element.tagName}:nth-of-type(${i + 1})`;
+        selector = `element_at_${i + 1}`;
         break;
     }
 
@@ -144,6 +146,15 @@ const find_child_with_text = (from, text) => {
 }
 
 const find_element = (query, content, find_all) => {
+    if (!query)
+        return;
+
+    if (query.startsWith("element_at_")) {
+        const index = Number(query.replace("element_at_", ""));
+        const nodes = all_nodes([], document.body);
+        return nodes[index - 1];
+    }
+
     const elements = document.querySelectorAll(query);
     const result = [];
     for (let i = 0; i < elements.length; i++) {
