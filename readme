@@ -2,7 +2,15 @@ dani
     this tool allows to run actions, such as clicking, typing, etc. in a page.
 
 how to use?
-    add <script src="https://raw.githack.com/Ruk33/dani/master/dani.js"></script>
+    add:
+
+    <script type="module">
+    import unique from "https://esm.sh/unique-selector@0.5.0"
+    window.unique = unique;
+    </script>
+    <script src="https://raw.githack.com/Ruk33/dani/master/dani.js"></script>
+
+
     at the bottom of your page. that's it. with this, the tool will show up
     and you are ready to feed in actions. the documentation resides inside
     this tool.

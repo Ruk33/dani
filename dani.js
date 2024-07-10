@@ -115,14 +115,8 @@ const find_selector_for = (element) => {
             return possible_selector;
     }
 
-    let selector = "";
-    const nodes = all_nodes([], document.body);
-    for (let i = 0; i < nodes.length; i++) {
-        if (nodes[i] !== element)
-            continue;
-        selector = `element_at_${i + 1}`;
-        break;
-    }
+    const options = { selectorTypes : ["ID", "Tag", "NthChild"] };
+    const selector = unique(element, options).replaceAll(" > ", ">");
 
     return {
         selector: selector,

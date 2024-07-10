@@ -37,6 +37,7 @@ type [text] in INPUT:nth-of-type(3)
             <a href="#">test</a>
             <div>
                 <div onClick=${alert}><div>foo</div></div>
+                <div><span><input /></span></div>
                 <button type="button" onClick=${() => setValue(value + 1)}>
                     
 
@@ -50,6 +51,7 @@ type [text] in INPUT:nth-of-type(3)
                     <option value="lorem">lorem</option>
                     <option value="ipsum">ipsum</option>
                 </select><input />
+                <div><div><div><input /></div><div><div><div><div><div></div><div><div></div><input /></div></div></div></div></div>
                 <div><input /></div>
             </div>
         </div>`;
@@ -58,6 +60,10 @@ type [text] in INPUT:nth-of-type(3)
     render(html`<${App} name="World" />`, document.body);
 </script>
 
+<script type="module">
+import unique from "https://esm.sh/unique-selector@0.5.0"
+window.unique = unique;
+</script>
 <script type="text/javascript" src="dani.js"></script>
 
 </body>
