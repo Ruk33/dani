@@ -115,8 +115,14 @@ const find_selector_for = (element) => {
             return possible_selector;
     }
 
-    const options = { selectorTypes : ["ID", "Tag", "NthChild"] };
-    const selector = unique(element, options).replaceAll(" > ", ">");
+    const names = [];
+    while (element.parentElement && element.tagName !== "BODY") {
+        let c = 1, e = element;
+        for (; e.previousElementSibling; e = e.previousElementSibling, c++) ;
+        names.unshift(":nth-child(" + c + ")");
+        element = element.parentElement;
+    }
+    const selector = names.join(">");
 
     return {
         selector: selector,
