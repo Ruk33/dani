@@ -5,22 +5,22 @@ function dani(config) {
 
     // Instruction expressions
     const wait_expression = /(?<command>wait) (?<ms>(\d+))/;
-    const find_expression = /(?<command>find) (?<query>([^ ]+)$)/;
-    const find_with_expression = /(?<command>find) (?<query>([^ ]+)) with (?<with>([^ ]+))$/;
-    const do_not_find_expression = /(?<command>dont find) (?<query>([^ ]+)$)/;
-    const do_not_find_with_expression = /(?<command>dont find) (?<query>([^ ]+)) with (?<with>([^ ]+))$/;
-    const click_expression = /(?<command>click) (?<query>([^ ]+)$)/;
-    const click_with_expression = /(?<command>click) (?<query>([^ ]+)) with (?<with>([^ ]+))$/;
+    const find_expression = /(?<command>find) (?<query>([^ ]+))$/;
+    const find_with_expression = /(?<command>find) (?<query>([^ ]+)) with (?<with>(.+))$/;
+    const do_not_find_expression = /(?<command>dont find) (?<query>([^ ]+))$/;
+    const do_not_find_with_expression = /(?<command>dont find) (?<query>([^ ]+)) with (?<with>(.+))$/;
+    const click_expression = /(?<command>click) (?<query>([^ ]+))$/;
+    const click_with_expression = /(?<command>click) (?<query>([^ ]+)) with (?<with>(.+))$/;
     const type_expression = /(?<command>type) \[(?<content>([^ ]+))\] in (?<query>([^ ]+))$/;
-    const type_with_expression = /(?<command>type) \[(?<content>([^ ]+))\] in (?<query>([^ ]+)) with (?<with>([^ ]+))$/;
+    const type_with_expression = /(?<command>type) \[(?<content>([^ ]+))\] in (?<query>([^ ]+)) with (?<with>(.+))$/;
     const choose_expression = /(?<command>choose) \[(?<option>([^ ]+))\] in (?<query>([^ ]+))$/;
-    const choose_with_expression = /(?<command>choose) \[(?<option>([^ ]+))\] in (?<query>([^ ]+)) with (?<with>([^ ]+))$/;
+    const choose_with_expression = /(?<command>choose) \[(?<option>([^ ]+))\] in (?<query>([^ ]+)) with (?<with>(.+))$/;
     const reload_expression = /(?<command>reload)$/;
-    const visit_expression = /(?<command>visit) (?<href>(.+))/;
-    const goto_expression = /(?<command>goto) (?<href>(.+))/;
+    const visit_expression = /(?<command>visit) (?<href>(.+))$/;
+    const goto_expression = /(?<command>goto) (?<href>(.+))$/;
     const clear_storage_expression = /(?<command>clear storage)$/;
     const clear_cookies_expression = /(?<command>clear cookies)$/;
-    const resize_expression = /(?<command>resize) (?<width>(\d+)) (?<height>(\d+))/;
+    const resize_expression = /(?<command>resize) (?<width>(\d+)) (?<height>(\d+))$/;
     const all_expressions = [
         wait_expression,
         find_expression,
@@ -89,16 +89,17 @@ function dani(config) {
         for (const element of elements) {
             if (!content)
                 result = element;
-            if (element.textContent === content)
+            else if (element.textContent === content)
                 result = element;
-            if (element.value === content)
+            else if (element.value === content)
                 result = element;
+
             if (result)
                 break;
         }
 
-        const one_second = 1000;
-        highlight_node(result, one_second);
+        const highlight_time = 300;
+        highlight_node(result, highlight_time);
         return result;
     }
 
@@ -352,7 +353,9 @@ function dani(config) {
 
     async function resize_instruction() {
         const instruction = get_instruction_to_complete();
-        resize_window(instruction.payload.width, instruction.payload.height);
+        const width = Number(instruction.payload.width);
+        const height = Number(instruction.payload.height);
+        resize_window(width, height);
         complete_instruction();
     }
 
@@ -402,7 +405,7 @@ function dani(config) {
             await resize_instruction();
             break;
         default:
-            throw Error("Unknown command: " + JSON.stringify(instruction));
+            throw Error("Unknown command: " + JSON.stringify(to_complete));
             break;
         }
 
@@ -421,12 +424,12 @@ function dani(config) {
             .map(function(instruction) {
                 const clean_instruction = instruction.trim();
 
-                let result = null;
                 let payload = {};
 
                 for (const expression of all_expressions) {
-                    if (result = expression.exec(clean_instruction)) {
-                        payload = result.groups;
+                    const expression_matches = expression.exec(clean_instruction);
+                    if (expression_matches) {
+                        payload = expression_matches.groups;
                         break;
                     }
                 }
@@ -494,7 +497,6 @@ function dani(config) {
         if (!selected)
             return;
 
-        console.log({ selected });
         exit_select_node_mode();
 
         const tag = selected.tagName.toLowerCase();
@@ -515,6 +517,16 @@ function dani(config) {
 
     function open_documentation() {
 
+    }
+
+    function save_instructions() {
+        const instructions = by_id("dani-instructions").value;
+        localStorage.setItem("instructions_draft", instructions);
+    }
+
+    function restore_instructions() {
+        const instructions = localStorage.getItem("instructions_draft") || "";
+        by_id("dani-instructions").value = instructions;
     }
 
     // Initialize
@@ -595,10 +607,12 @@ function dani(config) {
         by_id("dani-restart").addEventListener("click", restart_instructions);
         by_id("dani-select-node").addEventListener("click", enter_select_node_mode);
         by_id("dani-documentation").addEventListener("click", open_documentation);
+        by_id("dani-instructions").addEventListener("input", save_instructions);
 
         document.addEventListener("mousemove", highlight_node_on_mouse);
         document.addEventListener("mousedown", select_node);
 
+        restore_instructions();
         handle_instructions();
     }
 
