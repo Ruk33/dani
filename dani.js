@@ -1,6 +1,6 @@
 function dani(config) {
     // Configurables
-    const tries = config.tries || 99;
+    const tries = config.tries || 5;
     const action_delay = config.action_delay || 650;
 
     // Instruction expressions
@@ -194,6 +194,40 @@ function dani(config) {
         });
     }
 
+    // Events
+    function on_complete() {
+        by_id("dani-instructions").style = "display: block";
+        by_id("dani-progress").style = "display: none";
+        by_id("dani-error").innerText = "";
+        by_id("dani-success").innerText = "All done!";
+    }
+
+    function on_progress() {
+        by_id("dani-instructions").style = "display: none";
+        by_id("dani-progress").style = "display: block";
+        by_id("dani-error").innerText = "";
+        by_id("dani-success").innerText = "Running...";
+
+        const instructions = get_instructions();
+        const progress = [];
+
+        for (const instruction of instructions) {
+            const icon = instruction.done ? "✅" : "🕰️";
+            progress.push(
+                "<div>" + icon + " | " + instruction.instruction + "</div>"
+            );
+        }
+
+        by_id("dani-progress").innerHTML = progress.join("");
+    }
+
+    function on_error(error) {
+        by_id("dani-instructions").style = "display: block";
+        by_id("dani-progress").style = "display: none";
+        by_id("dani-success").innerText = "";
+        by_id("dani-error").innerText = error;
+    }
+
     // Instruction handlers
     async function name_instruction() {
         complete_instruction();
@@ -363,54 +397,60 @@ function dani(config) {
         const to_complete = get_instruction_to_complete();
 
         if (!to_complete) {
-            console.log("all done");
+            on_complete();
             return;
         }
 
-        switch (to_complete.payload.command) {
-        case "wait":
-            await wait_instruction();
-            break;
-        case "find":
-            await find_instruction();
-            break;
-        case "dont find":
-            await do_not_find_instruction();
-            break;
-        case "click":
-            await click_instruction();
-            break;
-        case "type":
-            await type_instruction();
-            break;
-        case "choose":
-            await choose_instruction();
-            break;
-        case "reload":
-            await reload_instruction();
-            break;
-        case "visit":
-            await visit_instruction();
-            break;
-        case "goto":
-            await goto_instruction();
-            break;
-        case "clear storage":
-            await clear_storage_instruction();
-            break;
-        case "clear cookies":
-            await clear_cookies_instruction();
-            break;
-        case "resize":
-            await resize_instruction();
-            break;
-        default:
-            throw Error("Unknown command: " + JSON.stringify(to_complete));
-            break;
-        }
+        on_progress();
 
-        await wait(action_delay);
-        handle_instructions();
+        try {
+            switch (to_complete.payload.command) {
+            case "wait":
+                await wait_instruction();
+                break;
+            case "find":
+                await find_instruction();
+                break;
+            case "dont find":
+                await do_not_find_instruction();
+                break;
+            case "click":
+                await click_instruction();
+                break;
+            case "type":
+                await type_instruction();
+                break;
+            case "choose":
+                await choose_instruction();
+                break;
+            case "reload":
+                await reload_instruction();
+                break;
+            case "visit":
+                await visit_instruction();
+                break;
+            case "goto":
+                await goto_instruction();
+                break;
+            case "clear storage":
+                await clear_storage_instruction();
+                break;
+            case "clear cookies":
+                await clear_cookies_instruction();
+                break;
+            case "resize":
+                await resize_instruction();
+                break;
+            default:
+                throw Error("Unknown command: " + JSON.stringify(to_complete));
+                break;
+            }
+
+            await wait(action_delay);
+            handle_instructions();
+        } catch (error) {
+            on_error(error.message);
+        }
     }
 
     // Menu actions
@@ -447,7 +487,13 @@ function dani(config) {
     }
 
     function pause_instructions() {
-
+        const instructions = get_instructions().map(function(instruction) {
+            return {
+                ...instruction,
+                done: true,
+            };
+        });
+        localStorage.setItem("instructions", JSON.stringify(instructions));
     }
 
     function restart_instructions() {
@@ -593,9 +639,10 @@ function dani(config) {
                             <button class="dani-button" type="button" id="dani-documentation">📘</button>
                         </div>
                     </div>
-                    <div id="error" style="color: red; width: 500px; font-family: consolas; font-size: 14px; padding: 5px;"></div>
-                    <div id="success" style="color: #6bc73e; width: 500px; font-family: consolas; font-size: 14px; padding: 5px;"></div>
+                    <div id="dani-error" style="color: red; width: 500px; font-family: consolas; font-size: 14px; padding: 5px;"></div>
+                    <div id="dani-success" style="color: #6bc73e; width: 500px; font-family: consolas; font-size: 14px; padding: 5px;"></div>
                     <textarea id="dani-instructions" class="dani-instructions" placeholder="Enter commands."></textarea>
+                    <div id="dani-progress" style="display: none;" class="dani-instructions"></div>
                 </div>
             </div>
         `;
