@@ -516,6 +516,7 @@ function dani(config) {
     function exit_select_node_mode(event) {
         if (!is_selecting_node)
             return;
+
         if (event && event.key !== "Escape")
             return;
 
@@ -531,10 +532,16 @@ function dani(config) {
         if (!is_selecting_node)
             return;
 
+        const element = event.target;
+
+        const inside_menu = by_id("dani").contains(element);
+        if (inside_menu)
+            return;
+
         exit_select_node_mode();
         enter_select_node_mode();
 
-        highlight_node(event.target);
+        highlight_node(element);
     }
 
     function select_node(event) {
@@ -543,6 +550,10 @@ function dani(config) {
 
         const selected = document.querySelector(".dani-selector");
         if (!selected)
+            return;
+
+        const inside_menu = by_id("dani").contains(event.target);
+        if (inside_menu)
             return;
 
         exit_select_node_mode();
