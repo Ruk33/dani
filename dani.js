@@ -11,10 +11,10 @@ function dani(config) {
     const do_not_find_with_expression = /(?<command>dont find) (?<query>([^ ]+)) with (?<with>(.+))$/;
     const click_expression = /(?<command>click) (?<query>([^ ]+))$/;
     const click_with_expression = /(?<command>click) (?<query>([^ ]+)) with (?<with>(.+))$/;
-    const type_expression = /(?<command>type) \[(?<content>([^ ]+))\] in (?<query>([^ ]+))$/;
-    const type_with_expression = /(?<command>type) \[(?<content>([^ ]+))\] in (?<query>([^ ]+)) with (?<with>(.+))$/;
-    const choose_expression = /(?<command>choose) \[(?<option>([^ ]+))\] in (?<query>([^ ]+))$/;
-    const choose_with_expression = /(?<command>choose) \[(?<option>([^ ]+))\] in (?<query>([^ ]+)) with (?<with>(.+))$/;
+    const type_expression = /(?<command>type) \[(?<content>(.+))\] in (?<query>([^ ]+))$/;
+    const type_with_expression = /(?<command>type) \[(?<content>(.+))\] in (?<query>([^ ]+)) with (?<with>(.+))$/;
+    const choose_expression = /(?<command>choose) \[(?<option>(.+))\] in (?<query>([^ ]+))$/;
+    const choose_with_expression = /(?<command>choose) \[(?<option>(.+))\] in (?<query>([^ ]+)) with (?<with>(.+))$/;
     const reload_expression = /(?<command>reload)$/;
     const visit_expression = /(?<command>visit) (?<href>(.+))$/;
     const goto_expression = /(?<command>goto) (?<href>(.+))$/;
