@@ -577,6 +577,10 @@ function dani(config) {
         by_id("dani-instructions").value = instructions;
     }
 
+    function toggle_menu() {
+        by_id("dani").classList.toggle("dani-hide");
+    }
+
     // Initialize
     function initialize() {
         const menu = document.createElement("div");
@@ -632,13 +636,13 @@ function dani(config) {
             <div id="dani">
                 <div class="dani-content">
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 10px;">
-                        <button id="toggle-dani-menu" class="dani-button" type="button">🤏</button>
+                        <button id="dani-toggle-menu" class="dani-button" type="button">🤏</button>
                         <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
                             <button class="dani-button" type="button" id="dani-play">▶️</button>
                             <button class="dani-button" type="button" id="dani-pause">⏸️</button>
-                            <button class="dani-button" type="button" id="dani-restart">🔄</button>
+                            <!--<button class="dani-button" type="button" id="dani-restart">🔄</button>-->
                             <button class="dani-button" type="button" id="dani-select-node">🎯</button>
-                            <button class="dani-button" type="button" id="dani-documentation">📘</button>
+                            <!--<button class="dani-button" type="button" id="dani-documentation">📘</button>-->
                         </div>
                     </div>
                     <div id="dani-error" style="color: red; width: 500px; font-family: consolas; font-size: 14px; padding: 5px;"></div>
@@ -651,15 +655,17 @@ function dani(config) {
 
         document.body.append(menu);
 
+        by_id("dani-toggle-menu").addEventListener("click", toggle_menu);
         by_id("dani-play").addEventListener("click", play_instructions);
         by_id("dani-pause").addEventListener("click", pause_instructions);
-        by_id("dani-restart").addEventListener("click", restart_instructions);
+        // by_id("dani-restart").addEventListener("click", restart_instructions);
         by_id("dani-select-node").addEventListener("click", enter_select_node_mode);
-        by_id("dani-documentation").addEventListener("click", open_documentation);
+        // by_id("dani-documentation").addEventListener("click", open_documentation);
         by_id("dani-instructions").addEventListener("input", save_instructions);
 
         document.addEventListener("mousemove", highlight_node_on_mouse);
         document.addEventListener("mousedown", select_node);
+        document.addEventListener("keyup", exit_select_node_mode);
 
         restore_instructions();
         handle_instructions();
