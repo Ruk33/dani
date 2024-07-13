@@ -1,6 +1,6 @@
 function dani(config) {
     // Configurables
-    const tries = config.tries || 5;
+    const tries = config.tries || 99;
     const action_delay = config.action_delay || 650;
 
     // Instruction expressions
@@ -446,6 +446,7 @@ function dani(config) {
                 break;
             }
 
+            on_progress();
             await wait(action_delay);
             handle_instructions();
         } catch (error) {
@@ -494,6 +495,7 @@ function dani(config) {
             };
         });
         localStorage.setItem("instructions", JSON.stringify(instructions));
+        location.reload();
     }
 
     function restart_instructions() {
