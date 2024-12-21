@@ -514,8 +514,8 @@ const highlight_node_with_mouse = (e) => {
     // If the node is disabled, no mouseup event will be trigger
     // This is a hacky approach to the problem but seems to work...
     if (e.target.disabled) {
-        const record_and_collect = () => {
-            record_action();
+        const record_and_collect = (e) => {
+            record_action(e);
             e.target.disabled = true;
             e.target.removeEventListener("mouseup", record_and_collect);
             e.target.removeEventListener("mouseleave", cleanup);
@@ -533,7 +533,7 @@ const highlight_node_with_mouse = (e) => {
     }
 };
 
-const record_action = () => {
+const record_action = (e) => {
     if (!by_id("dani").classList.contains("dani-selector-enabled"))
         return;
     
@@ -542,6 +542,9 @@ const record_action = () => {
         exit_select_node_mode();
         return;
     }
+
+    e.preventDefault();
+    e.stopPropagation();
     
     const result = find_selector_for(selected);
     by_id("error").textContent = "";
