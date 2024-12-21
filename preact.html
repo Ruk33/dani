@@ -7,6 +7,10 @@
 </head>
 <body>
 
+<div id="another-test">Testing!</div> <button id="click-me">Click me</button>
+
+<input disabled type="text" value="some value" id="some-input">
+
 <h1>These actions must run and succeed</h1>
 <p>To test it, simply copy all these actions into the tool and hit ▶️</p>
 <pre style="width: 300px; height: 300px; border: 1px solid black;">
@@ -20,45 +24,6 @@ choose [lorem] in select with lorem
 
 type [text] in INPUT:nth-of-type(3)
 </pre>
-
-<script type="module">
-    import { h, render } from 'https://esm.sh/preact';
-    import { useState } from 'https://esm.sh/preact/hooks';
-    import htm from 'https://esm.sh/htm';
-
-    // Initialize htm with Preact
-    const html = htm.bind(h);
-
-    function App (props) {
-        const [value, setValue] = useState(0);
-        return html`
-        <div>
-            <div>value: ${value}</div>
-            <a href="#">test</a>
-            <div>
-                <div onClick=${alert}><div>foo</div></div>
-                <div><span><input /></span></div>
-                <button type="button" onClick=${() => setValue(value + 1)}>
-                    
-
-                    increase
-
-
-
-                </button>
-                <input id="some.random.and.weird.id.2" /><input />
-                <select>
-                    <option value="lorem">lorem</option>
-                    <option value="ipsum">ipsum</option>
-                </select><input />
-                <div><div><div><input /></div><div><div><div><div><div></div><div><div></div><input /></div></div></div></div></div>
-                <div><input /></div>
-            </div>
-        </div>`;
-    }
-
-    render(html`<${App} name="World" />`, document.body);
-</script>
 
 <script type="text/javascript" src="dani.js"></script>
 

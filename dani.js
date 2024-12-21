@@ -1,19 +1,11 @@
-const default_tries = 99;
+// How many times to re-try certain actions before giving up and failing.
+const default_tries = Number(localStorage.getItem("defaultTries")) || 15;
+// How many ms to wait between each action.
 const wait_before_each_action = Number(localStorage.getItem("waitBeforeEachAction")) || 650;
 
 const by_id = (id) => document.getElementById(id);
 
 const get_instructions = () => JSON.parse(localStorage.getItem("instructions") || "[]");
-
-const all_nodes = (result, element) => {
-    if (!element)
-        return result;
-    const children = element.children || [];
-    result.push(...children);
-    for (let i = 0; i < children.length; i++)
-        all_nodes(result, children[i]);
-    return result;
-}
 
 const extract_selector = (from) => {
     const selector =
@@ -58,34 +50,11 @@ const is_element_hidden = (element) => {
 };
 
 const get_selector = (element) => {
-    const tag = element.tagName.toLowerCase();
-
-    if (element.value)
-        return {
-            selector: tag,
-            with: element.value,
-            fullSelector: `${tag} with ${element.value}`,
-        };
-
-    if (element.placeholder)
-        return {
-            selector: tag,
-            with: element.placeholder,
-            fullSelector: `${tag} with ${element.placeholder}`,
-        };
-
-    if (element.textContent)
-        return {
-            selector: tag,
-            with: element.textContent.trim(),
-            fullSelector: `${tag} with ${element.textContent.trim()}`,
-        };
-
     if (element.id)
         return {
-            selector: `${tag}[id="${element.id}"]`,
+            selector: `[id="${element.id}"]`,
             with: undefined,
-            fullSelector: `${tag}[id="${element.id}"]`,
+            fullSelector: `[id="${element.id}"]`,
         };
 
     return {
@@ -96,39 +65,7 @@ const get_selector = (element) => {
 };
 
 const find_selector_for = (element) => {
-    const possible_selector = get_selector(element);
-    if (possible_selector.selector) {
-        const find_all_matches = true;
-        const elements = find_element(
-            possible_selector.selector,
-            possible_selector.with,
-            find_all_matches,
-        );
-        let is_valid = true;
-        for (let i = 1; i < elements.length; i++) {
-            if (!elements[0].contains(elements[i])) {
-                is_valid = false;
-                break;
-            }
-        }
-        if (is_valid)
-            return possible_selector;
-    }
-
-    const names = [];
-    while (element.parentElement && element.tagName !== "BODY") {
-        let c = 1, e = element;
-        for (; e.previousElementSibling; e = e.previousElementSibling, c++) ;
-        names.unshift(":nth-child(" + c + ")");
-        element = element.parentElement;
-    }
-    const selector = names.join(">");
-
-    return {
-        selector: selector,
-        with: undefined,
-        fullSelector: selector,
-    };
+    return get_selector(element);
 };
 
 const find_child_with_text = (from, text) => {
@@ -148,12 +85,6 @@ const find_child_with_text = (from, text) => {
 const find_element = (query, content, find_all) => {
     if (!query)
         return;
-
-    if (query.startsWith("element_at_")) {
-        const index = Number(query.replace("element_at_", ""));
-        const nodes = all_nodes([], document.body);
-        return nodes[index - 1];
-    }
 
     const elements = document.querySelectorAll(query);
     const result = [];
@@ -176,9 +107,10 @@ const find_element = (query, content, find_all) => {
             if (!find_all) {
                 // scroll to node
                 element.scrollIntoView(true);
-                // red highlight
+                // highlight
                 const bg = element.style.background;
                 element.style.background = "#cedfff";
+                // remove highlight after a few ms
                 setTimeout(() => {
                     element.style.background = bg;
                 }, 500);
@@ -385,7 +317,7 @@ const handle_instruction = (tries) => {
             }
 
             const element = find_element(query.selector, query.with);
-            if (!element) {
+            if (!element || element.disabled) {
                 setTimeout(() => {
                     handle_instruction(tries - 1);
                 }, 500);
@@ -441,7 +373,7 @@ const handle_instruction = (tries) => {
         break;
         case "intervention": {
             by_id("error").innerHTML =
-                `User intervention requested:<br/>${next.instruction.replace("intervention ", "")}.<br/><br/>Once YOU finished the action, click ▶️ to continue.`;
+                `<p>User intervention requested:</p><p>${next.instruction.replace("intervention ", "")}.</p><p>Once YOU finished the action, click ▶️ to continue.</p>`;
             show_menu();
             document
                 .getElementById("play")
@@ -565,24 +497,52 @@ const open_documentation = () => {
 };
 
 const highlight_node_with_mouse = (e) => {
-    if (!by_id("dani").classList.contains("dani-selector-enabled"))
+    const selector_is_not_enabled = !by_id("dani").classList.contains("dani-selector-enabled");
+    if (selector_is_not_enabled)
         return;
+    
+    const target_has_no_id = !e.target.id;
+    if (target_has_no_id)
+        return;
+
     const all_selected = document.getElementsByClassName("dani-selector");
     for (const selected of all_selected)
         selected.classList.remove("dani-selector");
+    
     e.target.classList.add("dani-selector");
+
+    // If the node is disabled, no mouseup event will be trigger
+    // This is a hacky approach to the problem but seems to work...
+    if (e.target.disabled) {
+        const record_and_collect = () => {
+            record_action();
+            e.target.disabled = true;
+            e.target.removeEventListener("mouseup", record_and_collect);
+            e.target.removeEventListener("mouseleave", cleanup);
+        }
+
+        const cleanup = () => {
+            e.target.disabled = true;
+            e.target.removeEventListener("mouseup", record_and_collect);
+            e.target.removeEventListener("mouseleave", cleanup);
+        }
+
+        e.target.disabled = false;
+        e.target.addEventListener("mouseup", record_and_collect);
+        e.target.addEventListener("mouseleave", cleanup);
+    }
 };
 
 const record_action = () => {
     if (!by_id("dani").classList.contains("dani-selector-enabled"))
         return;
-
+    
     const selected = document.querySelector(".dani-selector");
     if (!selected) {
         exit_select_node_mode();
         return;
     }
-
+    
     const result = find_selector_for(selected);
     by_id("error").textContent = "";
     by_id("success").textContent = "Action added to the list of actions.";
@@ -701,41 +661,41 @@ const create_menu = () => {
     }
     </style>
     <dialog id="documentation-dialog">
-        <pre style="padding: 10px; border: 2px solid black;">
+        <pre>
 wait (ms)
         Blocks and waits ms.
         Example: wait 2000
 
-click (css query)
-        Click element found using css query.
-        Example: click #button-with-id
+click (node-id)
+        Click element found using node id.
+        Example: click [id="some-id"]
 
-click (css query) with (text content)
-        Click element found using css query and checking for it's content/value.
-        Example: click button with Checkout
-        Example: click input with 42
+click (node-id) with (text content)
+        Click element found using node id and checking for it's content/value.
+        Example: click [id="some-id"] with Checkout
+        Example: click [id="some-id"] with 42
 
-type ([what]) in (css query)
-choose ([what]) in (css query)
-        Types text in element found using css query.
+type ([what]) in (node-id)
+choose ([what]) in (node-id)
+        Types text in element found using node id.
         Choose is just an alias. It's mean to be used for select inputs (for instance, the quantity selector in the cart slider)
-        Example: type [42] in #input
-        Example: choose [2] in select
+        Example: type [42] in [id="some-id"]
+        Example: choose [2] in [id="some-id"]
 
-find (css query)
-        Finds and ensures element with css query exists.
-        Example: find #div-with-id
+find (node-id)
+        Finds and ensures element with id exists.
+        Example: find [id="some-id"]
 
-find (css query) with (text content)
-        Finds element using css query ensuring it's content/value matches.
-        Example: find #div with this text
-        Example: find #input with 42
+find (node-id) with (text content)
+        Finds element with id ensuring it's content/value matches.
+        Example: find [id="some-id"] with this text
+        Example: find [id="some-id"] with 42
 
-don't find (css query)
-don't find (css query) with (text content)
+don't find (node-id)
+don't find (node-id) with (text content)
         Make sure an element isn't found or visible.
-        Example: don't find div with Some content
-        Example: don't find #successMessage
+        Example: don't find [id="some-id"] with Some content
+        Example: don't find [id="some-id"]
 
 reload
         Reloads page.
@@ -764,7 +724,7 @@ intervention (helpful message)
         Example: intervention upload file for product
         </pre>
         <form method="dialog" style="position: absolute; top: 10px; right: 10px;">
-            <button>❌</button>
+            <button style="border: 0; background-color: transparent;">❌</button>
         </form>
     </dialog>
 

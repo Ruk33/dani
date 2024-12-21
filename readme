@@ -14,8 +14,12 @@ how do these "actions" look like?
     here is a list of actions which, type "text" into an input and clicks
     a button with a label "increase":
 
-    type [text] in INPUT:nth-of-type(3)
-    click button with increase
+    type [text] in [id="some-input"]
+    click [id="some-button"] with increase
+
+    this tool enforces and only works with nodes having an id, the reason for
+    this is to improve reliability. just add an id to the node you want to use
+    or test.
 
 examples?
     check preact.html, which simulates a single page application using preact
